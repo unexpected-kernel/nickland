@@ -1,0 +1,66 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import io
+
+st.title("Gestor de Drafts de Jugadores")
+
+# Ruta del archivo consolidado
+file_path = r"C:\Users\Lenovo\Python\Proyecto Streamlit\03_Output\drafts.csv"
+
+# Cargar datos existentes
+try:
+    df = pd.read_csv(file_path)
+except FileNotFoundError:
+    df = pd.DataFrame(columns=["Nombre", "ID Vendedor", "ID Comprador", "Tipo", "Temporada"])
+
+# --- Formulario para ingresar nuevo registro ---
+st.subheader("Agregar nuevo draft")
+with st.form("form_draft"):
+    nombre = st.text_input("Nombre del jugador")
+    id_vendedor = st.text_input("ID equipo vendedor")
+    id_comprador = st.text_input("ID equipo comprador")
+    tipo = st.selectbox("Tipo de movimiento", ["Venta", "Préstamo"])
+    temporada = st.text_input("Temporada (ej. 2023-24)", value="2023-24")
+    submit = st.form_submit_button("Agregar")
+
+# --- Guardar si se presiona "Agregar" ---
+if submit:
+    if not nombre or not id_vendedor or not id_comprador or not temporada:
+        st.error("Todos los campos son obligatorios.")
+    else:
+        nuevo = pd.DataFrame({
+            "Nombre": [nombre],
+            "ID Vendedor": [id_vendedor],
+            "ID Comprador": [id_comprador],
+            "Tipo": [tipo],
+            "Temporada": [temporada]
+        })
+
+        # Evitar duplicados exactos
+        duplicado = ((df["Nombre"] == nombre) &
+                     (df["ID Vendedor"] == id_vendedor) &
+                     (df["ID Comprador"] == id_comprador) &
+                     (df["Tipo"] == tipo) &
+                     (df["Temporada"] == temporada)).any()
+
+        if duplicado:
+            st.warning("Este registro ya existe.")
+        else:
+            df = pd.concat([df, nuevo], ignore_index=True)
+            df.to_csv(file_path, index=False)
+            st.success("Registro agregado correctamente.")
+
+# --- Mostrar tabla de drafts ---
+st.subheader("Historial de drafts")
+st.dataframe(df.sort_values(["Temporada", "Nombre"]), use_container_width=True)
+
+# --- Exportar a CSV ---
+if st.button("Exportar a CSV"):
+    output = io.StringIO()
+    df_export = df.copy()
+    df_export.to_csv(output, index=False)
+    st.download_button(label="Descargar CSV",
+                       data=output.getvalue(),
+                       file_name="drafts.csv",
+                       mime="text/csv")
