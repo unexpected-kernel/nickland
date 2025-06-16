@@ -12,12 +12,13 @@ file_path = r"C:\Users\Lenovo\Python\Proyecto Streamlit\03_Output\drafts.csv"
 try:
     df = pd.read_csv(file_path)
 except FileNotFoundError:
-    df = pd.DataFrame(columns=["Nombre", "ID Vendedor", "ID Comprador", "Tipo", "Temporada"])
+    df = pd.DataFrame(columns=["Nombre", "ID_Cyberfoot2007","ID_Vendedor", "ID_Comprador", "Tipo", "Temporada"])
 
 # --- Formulario para ingresar nuevo registro ---
 st.subheader("Agregar nuevo draft")
 with st.form("form_draft"):
     nombre = st.text_input("Nombre del jugador")
+    id_cyberfoot = st.text_input("ID Cyberfoot 2007")
     id_vendedor = st.text_input("ID equipo vendedor")
     id_comprador = st.text_input("ID equipo comprador")
     tipo = st.selectbox("Tipo de movimiento", ["Venta", "Préstamo"])
@@ -31,16 +32,18 @@ if submit:
     else:
         nuevo = pd.DataFrame({
             "Nombre": [nombre],
-            "ID Vendedor": [id_vendedor],
-            "ID Comprador": [id_comprador],
+            "ID_Cyberfoot2007":[id_cyberfoot],
+            "ID_Vendedor": [id_vendedor],
+            "ID_Comprador": [id_comprador],
             "Tipo": [tipo],
             "Temporada": [temporada]
         })
 
         # Evitar duplicados exactos
         duplicado = ((df["Nombre"] == nombre) &
-                     (df["ID Vendedor"] == id_vendedor) &
-                     (df["ID Comprador"] == id_comprador) &
+                     (df["ID_Cyberfoot"] == id_cyberfoot) &
+                     (df["ID_Vendedor"] == id_vendedor) &
+                     (df["ID_Comprador"] == id_comprador) &
                      (df["Tipo"] == tipo) &
                      (df["Temporada"] == temporada)).any()
 
